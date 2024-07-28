@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NATO Chat</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Chat NATO</h1>
+        </div>
+        <div class="chat-window" id="chat-window">
+            <!-- Mensagens aparecerão aqui -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Digite uma mensagem...">
+            <button id="send-button">Enviar</button>
+        </div>
+    </div>
+    <script type="module">
+        // Importar funções do Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDTsB2FmclyaDlYnXbvXr9hbYLYWdzwJ7Q",
+            authDomain: "chat-e382a.firebaseapp.com",
+            projectId: "chat-e382a",
+            storageBucket: "chat-e382a.appspot.com",
+            messagingSenderId: "493355104367",
+            appId: "1:493355104367:web:ec234a469ad619bdff759a"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Elementos do DOM
+        const chatWindow = document.getElementById('chat-window');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        // Função para enviar mensagem para o Firebase
+        const sendMessage = () => {
+            const message = messageInput.value;
+            if (message) {
+                const messagesRef = ref(db, 'messages');
+                push(messagesRef, {
+                    text: message,
+                    timestamp: Date.now()
+                });
+                messageInput.value = '';
+            }
+        };
+
+        // Enviar mensagem ao clicar no botão
+        sendButton.addEventListener('click', sendMessage);
+
+        // Enviar mensagem ao pressionar Enter
+        messageInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Receber mensagens do Firebase
+        const messagesRef = ref(db, 'messages');
+        onChildAdded(messagesRef, (snapshot) => {
+            const message = snapshot.val();
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message.text;
+            messageElement.classList.add('message');
+            chatWindow.appendChild(messageElement);
+
+            // Limitar a 10 mensagens
+            if (chatWindow.childElementCount > 1000) {
+                chatWindow.removeChild(chatWindow.firstChild);
+            }
+
+            // Scroll para a última mensagem
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        });
+    </script>
+</body>
+</html>
